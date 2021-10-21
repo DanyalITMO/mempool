@@ -1,13 +1,15 @@
 #pragma once
 
 #include <iterator>
+#include <cstring>
 
-template<typename T>
+template<typename T, typename allocator = std::allocator<T>>
 class TArray
 {
 public:
     TArray(std::size_t size) : m_size(size){
-        m_data = reinterpret_cast<T*>(malloc(sizeof(m_size) * m_size ));
+        if(m_size)
+            m_data = m_allocator.allocate(m_size);
     }
 
     TArray() : TArray(200)
@@ -45,20 +47,32 @@ public:
     };
 
     Iterator begin() { return Iterator(&m_data[0]); }
-    Iterator end()   { return Iterator(&m_data[m_size]); } // 200 is out of bounds
+    Iterator end()   { return Iterator(&m_data[m_size]); }
 
     void push_back(const T& value){
-        m_size++;
-        m_data = reinterpret_cast<T*>(realloc(m_data, m_size * sizeof(T)));
-        if(!m_data)
+
+        auto new_data = m_allocator.allocate(m_size + 1);
+        if(!new_data)
             throw std::runtime_error{"Can not realloc memory"};
-        m_data[m_size - 1] = value;
+        if(m_size)
+        {
+            memcpy(new_data, m_data,  m_size * sizeof(T));
+        }
+        new_data[m_size] = value;
+        clear();
+        m_data = new_data;
+        m_size++;
+
     }
     void clear()
     {
-        free(m_data);
+        if(m_size)
+        {
+            m_allocator.deallocate(m_data, m_size);
+        }
     }
 private:
-    T* m_data;
+    T* m_data = nullptr;
     std::size_t m_size;
+    allocator m_allocator;
 };
