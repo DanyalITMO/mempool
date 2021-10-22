@@ -9,7 +9,14 @@ class TArray
 public:
     TArray(std::size_t size) : m_size(size){
         if(m_size)
+        {
             m_data = m_allocator.allocate(m_size);
+            for(std::size_t i = 0; i < m_size; i++)
+            {
+//                std::cout<<std::hex<<"construct: "<<m_data + i<<std::endl;
+                m_allocator.construct(m_data + i, 1);
+            }
+        }
     }
 
     TArray() : TArray(200)
@@ -54,11 +61,12 @@ public:
         auto new_data = m_allocator.allocate(m_size + 1);
         if(!new_data)
             throw std::runtime_error{"Can not realloc memory"};
-        if(m_size)
-        {
-            memcpy(new_data, m_data,  m_size * sizeof(T));
+        for(std::size_t i = 0; i < m_size; i++) {
+            m_allocator.construct(new_data + i, *reinterpret_cast<T *>(m_data + i));
+            m_allocator.destroy(reinterpret_cast<T *>(m_data + i));
         }
-        new_data[m_size] = value;
+        m_allocator.construct(new_data + m_size, value);
+
         clear();
         m_data = new_data;
         m_size++;
