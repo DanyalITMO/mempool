@@ -61,7 +61,7 @@ int main()
         v.emplace_back(i);
         std::cout << std::endl;
     }*/
-/*
+
     auto m = std::map<
             int,
             float,
@@ -76,5 +76,5 @@ int main()
     for (int i = 0; i < 1; ++i) {
         m[i] = static_cast<float>(i);
     }
-*/
+
 }
