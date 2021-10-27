@@ -20,7 +20,7 @@ public:
     [[nodiscard]] void * allocate(std::size_t bytes) noexcept;
     void deallocate(void * ptr, std::size_t bytes) noexcept;
 
-private:
+protected:
     std::size_t find_contiguous_blocks(std::size_t n) const noexcept;
     void set_blocks_in_use(std::size_t index, std::size_t n) noexcept;
     void set_blocks_free(std::size_t index, std::size_t n) noexcept;
