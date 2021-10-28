@@ -22,11 +22,14 @@ public:
 
 protected:
     std::size_t find_contiguous_blocks(std::size_t n) const noexcept;
+    void set_block(std::size_t index, std::size_t n, bool inUse) noexcept;
     void set_blocks_in_use(std::size_t index, std::size_t n) noexcept;
     void set_blocks_free(std::size_t index, std::size_t n) noexcept;
 
     std::byte* m_data{nullptr};
     std::byte* m_ledger{nullptr};
+    std::size_t m_ledger_size{0};
+
 };
 
 class mempool {

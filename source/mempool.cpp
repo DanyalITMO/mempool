@@ -3,12 +3,13 @@
 //
 
 #include "../include/mempool.h"
+#include "../tests/utils.h"
 #include <cstdlib>
 #include <cassert>
 #include <cstring>
 #include <cmath>
 #include <iostream>
-#include <bitset>
+
 
 bucket::bucket(std::size_t block_size, std::size_t block_count)
         : BlockSize{block_size}
@@ -19,11 +20,11 @@ bucket::bucket(std::size_t block_size, std::size_t block_count)
     const auto data_size = BlockSize * BlockCount;
     m_data = static_cast<std::byte*>(malloc(data_size));
     assert(m_data != nullptr);
-    const auto ledger_size = 1 + ((BlockCount - 1) / 8);
-    m_ledger = static_cast<std::byte*>(std::malloc(ledger_size));
+    m_ledger_size = 1 + ((BlockCount - 1) / 8);
+    m_ledger = static_cast<std::byte*>(std::malloc(m_ledger_size));
     assert(m_ledger != nullptr);
     std::memset(m_data, 0, data_size);
-    std::memset(m_ledger, 0, ledger_size);
+    std::memset(m_ledger, 0, m_ledger_size);
 }
 bucket::~bucket() {
     free(m_ledger);
@@ -52,12 +53,6 @@ void bucket::deallocate(void * ptr, std::size_t bytes) noexcept {
     set_blocks_free(index, n);
 }
 
-void print_bin(unsigned a)
-{
-    std::bitset<8> x(a);
-    std::cerr << x << '\n';
-}
-
 std::size_t bucket::find_contiguous_blocks(std::size_t n) const noexcept
 {
     const auto ledger_size = 1 + ((BlockCount - 1) / 8);
@@ -66,12 +61,9 @@ std::size_t bucket::find_contiguous_blocks(std::size_t n) const noexcept
 
     for(std::size_t ledger_number = 0; ledger_number < ledger_size; ledger_number++)
     {
-        std::cerr<<"ledger_number: "<<ledger_number<<std::endl;
         std::byte filter{0b10000000};
         while (static_cast<unsigned>(filter))
         {
-            print_bin(static_cast<unsigned>(filter));
-            print_bin(static_cast<unsigned>(m_ledger[ledger_number]));
             if(static_cast<unsigned>(m_ledger[ledger_number] & filter) == 0)
             {
                 contiguous_count++;
@@ -97,23 +89,39 @@ std::size_t bucket::find_contiguous_blocks(std::size_t n) const noexcept
     return -1;
 }
 
-void bucket::set_blocks_in_use(std::size_t index, std::size_t n) noexcept
+
+void bucket::set_block(std::size_t index, std::size_t n, bool inUse) noexcept
 {
     std::size_t block = index / 8;
     std::size_t offset_start_block = index % 8;
     for(std::size_t i = 0; i < n; i++)
     {
-        m_ledger[block] |= static_cast<std::byte>(std::pow(2, offset_start_block - 1));
-        offset_start_block--;
-        if(offset_start_block == 0)
+        if(inUse)
+        {
+            m_ledger[block] |= static_cast<std::byte>(std::pow(2, 7 - offset_start_block));
+        } else
+        {
+            m_ledger[block] &= ~static_cast<std::byte>(std::pow(2, 7 - offset_start_block));
+        }
+
+        if(offset_start_block == 7)
         {
             ++block;
-            offset_start_block = 7;
+            offset_start_block = 0;
+        }
+        else
+        {
+            offset_start_block++;
         }
     }
 }
 
+void bucket::set_blocks_in_use(std::size_t index, std::size_t n) noexcept
+{
+    set_block(index, n, true);
+}
+
 void bucket::set_blocks_free(std::size_t index, std::size_t n) noexcept
 {
-
+    set_block(index, n, false);
 }
