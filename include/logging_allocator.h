@@ -46,19 +46,20 @@ struct logging_allocator {
     template<typename U, typename ...Args>
     void construct(U *p, Args &&...args) {
 #ifndef USE_PRETTY
-        std::cout << "construct" << std::endl;
+        std::cout << "construct: " << typeid(U).name() << std::endl;
 #else
         std::cout << __PRETTY_FUNCTION__ << std::endl;
 #endif
         new(p) U(std::forward<Args>(args)...);
     };
 
-    void destroy(T *p) {
+    template<typename U>
+    void destroy(U *p) {
 #ifndef USE_PRETTY
-        std::cout << "destroy" << std::endl;
+        std::cout << "destroy: " << typeid(U).name()<< std::endl;
 #else
         std::cout << __PRETTY_FUNCTION__ << std::endl;
 #endif
-        p->~T();
+        p->~U();
     }
 };

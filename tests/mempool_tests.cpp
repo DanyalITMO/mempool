@@ -1,77 +1,68 @@
-//
-// Created by mugutdinov on 27.10.2021.
-//
-
-#include <cstring>
+#include "mempool_allocator.h"
 #include "gtest/gtest.h"
-#include "mempool.h"
-#include "utils.h"
 
-
-class bucket_tests : public bucket, public ::testing::Test
+class mempool_tests : public ::testing::Test
 {
 public:
-    bucket_tests() : bucket(4,27)
-    {
-    }
 };
 
-TEST_F(bucket_tests, find_contiguous_blocks_test)
+TEST_F(mempool_tests, test1)
 {
-    EXPECT_EQ(0, find_contiguous_blocks(4));
+    auto m = std::map<
+            int,
+            float,
+            std::less<>,
+            mempool_allocator<
+            std::pair<
+                    const int, float
+            >
+    >
+             >{};
 
-    m_ledger[0] = static_cast<std::byte>(unsigned{0b11111111});
-    EXPECT_EQ(8, find_contiguous_blocks(4));
+    std::size_t n = 100;
+    for (int i = 0; i < n; ++i) {
+        m[i] = static_cast<float>(i * i);
+    }
 
-    m_ledger[0] = static_cast<std::byte>(unsigned{0b11111000});
-    EXPECT_EQ(5, find_contiguous_blocks(4));
-
-    m_ledger[0] = static_cast<std::byte>(unsigned{0b10101011});
-    EXPECT_EQ(8, find_contiguous_blocks(4));
-
-    m_ledger[0] = static_cast<std::byte>(unsigned{0b10101011});
-    m_ledger[1] = static_cast<std::byte>(unsigned{0b10100011});
-    m_ledger[2] = static_cast<std::byte>(unsigned{0b10100100});
-    EXPECT_EQ(22, find_contiguous_blocks(4));
-
-    m_ledger[0] = static_cast<std::byte>(unsigned{0b11111111});
-    m_ledger[1] = static_cast<std::byte>(unsigned{0b11111111});
-    m_ledger[2] = static_cast<std::byte>(unsigned{0b11111111});
-    m_ledger[3] = static_cast<std::byte>(unsigned{0b11000000});
-    EXPECT_EQ(-1, find_contiguous_blocks(5));
+    for (int i = 0; i < n; ++i) {
+        EXPECT_EQ(static_cast<float>(i * i), m[i]);
+    }
 }
 
-TEST_F(bucket_tests, set_blocks_in_use_test)
+TEST_F(mempool_tests, test2)
 {
-    std::memset(m_ledger, 0, m_ledger_size);
-    set_blocks_in_use(4, 2);
-    EXPECT_EQ(static_cast<std::byte>(unsigned{0b00001100}),m_ledger[0]);
+    auto m = std::map<
+            int,
+            float,
+            std::less<>,
+            mempool_allocator<
+                    std::pair<
+                            const int, float
+                    >
+            >
+    >{};
 
-    std::memset(m_ledger, 0, m_ledger_size);
-    set_blocks_in_use(7, 4);
-    EXPECT_EQ(static_cast<std::byte>(unsigned{0b00000001}),m_ledger[0]);
-    EXPECT_EQ(static_cast<std::byte>(unsigned{0b11100000}),m_ledger[1]);
+    std::size_t n = 100;
+    for (int i = 0; i < n; ++i) {
+        m[i] = static_cast<float>(i);
+    }
 
-    std::memset(m_ledger, 0, m_ledger_size);
-    set_blocks_in_use(7, 10);
-    EXPECT_EQ(static_cast<std::byte>(unsigned{0b00000001}),m_ledger[0]);
-    EXPECT_EQ(static_cast<std::byte>(unsigned{0b11111111}),m_ledger[1]);
-    EXPECT_EQ(static_cast<std::byte>(unsigned{0b10000000}),m_ledger[2]);
-}
+    for(int i = 80; i < 90; i++)
+    {
+        m.erase(i);
+    }
 
-TEST_F(bucket_tests, set_blocks_free_test)
-{
-    m_ledger[0] = static_cast<std::byte>(unsigned{0b11111111});
-    set_blocks_free(4, 2);
-    EXPECT_EQ(static_cast<std::byte>(unsigned{0b11110011}), m_ledger[0]);
+    for (int i = 120; i < 150; ++i) {
+        m[i] = static_cast<float>(i);
+    }
 
-    m_ledger[0] = static_cast<std::byte>(unsigned{0b11111111});
-    m_ledger[1] = static_cast<std::byte>(unsigned{0b11111111});
-    m_ledger[2] = static_cast<std::byte>(unsigned{0b11111111});
-    m_ledger[3] = static_cast<std::byte>(unsigned{0b11111111});
-    set_blocks_free(3, 25);
-    EXPECT_EQ(static_cast<std::byte>(unsigned{0b11100000}), m_ledger[0]);
-    EXPECT_EQ(static_cast<std::byte>(unsigned{0b00000000}), m_ledger[1]);
-    EXPECT_EQ(static_cast<std::byte>(unsigned{0b00000000}), m_ledger[2]);
-    EXPECT_EQ(static_cast<std::byte>(unsigned{0b00001111}), m_ledger[3]);
+    for (int i = 0; i < 80; ++i) {
+        EXPECT_EQ(static_cast<float>(i), m[i]);
+    }
+    for (int i = 90; i < 100; ++i) {
+        EXPECT_EQ(static_cast<float>(i), m[i]);
+    }
+    for (int i = 120; i < 150; ++i) {
+        EXPECT_EQ(static_cast<float>(i), m[i]);
+    }
 }
