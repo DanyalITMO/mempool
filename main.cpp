@@ -3,8 +3,9 @@
 #include <map>
 #include "include/container.h"
 #include "include/logging_allocator.h"
-#include "include/mempool_allocator.h"
+#include "include/mempool_adapter.h"
 
+/**NOTE  основная идея и часть кода взята отсюда https://youtu.be/l14Zkx5OXr4*/
 
 extern  "C" const char* __asan_default_options() {
     return "verbosity=1:disable_coredump=0:abort_on_error=1:unmap_shadow_on_exit=1:verify_asan_link_order=1";
@@ -70,7 +71,7 @@ int main()
             int,
             float,
             std::less<int>,
-            mempool_allocator<
+            mempool_adapter<
                     std::pair<
                             const int, float
                     >

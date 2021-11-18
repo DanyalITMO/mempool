@@ -1,38 +1,74 @@
-//
-// Created by mugutdinov on 26.10.2021.
-//
-
 #ifndef HW2_MEMPOOL_H
 #define HW2_MEMPOOL_H
 
-#include <cstddef>
+#include <memory>
+#include "bucket.h"
+#include "ChooseBucketStrategy.h"
+#include "MinWasteStrategy.h"
 
-class bucket{
-public:
-    const std::size_t BlockSize;
-    const std::size_t BlockCount;
-
-    bucket(std::size_t block_size, std::size_t  block_count);
-    ~bucket();
-
-    bool belongs(void* ptr) const noexcept;
-
-    [[nodiscard]] void * allocate(std::size_t bytes) noexcept;
-    void deallocate(void * ptr, std::size_t bytes) noexcept;
-
-protected:
-    std::size_t find_contiguous_blocks(std::size_t n) const noexcept;
-    void set_block(std::size_t index, std::size_t n, bool inUse) noexcept;
-    void set_blocks_in_use(std::size_t index, std::size_t n) noexcept;
-    void set_blocks_free(std::size_t index, std::size_t n) noexcept;
-
-    std::byte* m_data{nullptr};
-    std::byte* m_ledger{nullptr};
-    std::size_t m_ledger_size{0};
-
-};
-
+template <int BLOCK_COUNT = 500>
 class mempool {
+private:
+
+public:
+
+    mempool()
+    {
+        s = std::make_unique<MinWasteStrategy<_buckets_count>>();
+    }
+
+    bool allocate(void*& p, std::size_t bytes)
+    {
+        std::array<info, _buckets_count> infos;
+        for(std::size_t i = 0; i < _buckets.size(); i++)
+        {
+            infos[i].index = i;
+            auto&& bucket = _buckets[i];
+            infos[i].block_count = bucket.BlockCount;
+            infos[i].block_size = bucket.BlockSize;
+        }
+
+        auto order = s->choose(infos, bytes);
+
+        for(const auto& d : order)
+        {
+            if(p = _buckets[d].allocate(bytes); p != nullptr)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool deallocate(void* p , std::size_t bytes)
+    {
+        auto it = std::find_if(std::begin(_buckets), std::end(_buckets),
+                               [p](const auto& b){
+                                   return b.belongs(p);
+                               });
+
+        if(std::end(_buckets) != it)
+        {
+            it->deallocate(p, bytes);
+            return true;
+        }
+
+        return false;
+    }
+
+
+
+private:
+    constexpr static std::size_t _buckets_count = 4;
+    std::unique_ptr<ChooseBucketStrategy<_buckets_count>> s;
+    std::array<bucket, _buckets_count> _buckets{bucket{64, BLOCK_COUNT},
+                                                bucket{128, BLOCK_COUNT},
+                                                bucket{256, BLOCK_COUNT},
+                                                bucket{512, BLOCK_COUNT}
+
+
+    };
 
 };
 

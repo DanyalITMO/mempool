@@ -1,7 +1,3 @@
-//
-// Created by mugutdinov on 26.10.2021.
-//
-
 #include "../include/bucket.h"
 #include "../tests/utils.h"
 #include <cstdlib>
@@ -9,7 +5,6 @@
 #include <cstring>
 #include <cmath>
 #include <iostream>
-
 
 bucket::bucket(std::size_t block_size, std::size_t block_count)
         : BlockSize{block_size}
@@ -26,9 +21,15 @@ bucket::bucket(std::size_t block_size, std::size_t block_count)
     std::memset(m_data, 0, data_size);
     std::memset(m_ledger, 0, m_ledger_size);
 }
+
 bucket::~bucket() {
     free(m_ledger);
     free(m_data);
+}
+
+bool bucket::belongs(void* ptr) const noexcept
+{
+    return (ptr >= m_data && ptr </*<=*/ m_data + (BlockCount * BlockSize));
 }
 
 void * bucket::allocate(std::size_t bytes) noexcept {

@@ -1,4 +1,4 @@
-#include "mempool_allocator.h"
+#include "mempool_adapter.h"
 #include "gtest/gtest.h"
 
 class mempool_tests : public ::testing::Test
@@ -6,16 +6,16 @@ class mempool_tests : public ::testing::Test
 public:
 };
 
-TEST_F(mempool_tests, test1)
+TEST_F(mempool_tests, createAndCheck)
 {
     auto m = std::map<
             int,
             float,
             std::less<>,
-            mempool_allocator<
+            mempool_adapter<
             std::pair<
                     const int, float
-            >
+            >, 500
     >
              >{};
 
@@ -29,16 +29,36 @@ TEST_F(mempool_tests, test1)
     }
 }
 
-TEST_F(mempool_tests, test2)
+TEST_F(mempool_tests, repeadetlyCreateAndCheck)
 {
     auto m = std::map<
             int,
             float,
             std::less<>,
-            mempool_allocator<
+            mempool_adapter<
                     std::pair<
                             const int, float
-                    >
+                    >, 500
+            >
+    >{};
+
+    for (int i = 0; i < 100000; ++i) {
+        m[i] = static_cast<float>(i);
+        EXPECT_EQ(static_cast<float>(i), m[i]);
+        m.erase(i);
+    }
+}
+
+TEST_F(mempool_tests, createAndModifyAndCheck)
+{
+    auto m = std::map<
+            int,
+            float,
+            std::less<>,
+            mempool_adapter<
+                    std::pair<
+                            const int, float
+                    >, 500
             >
     >{};
 
