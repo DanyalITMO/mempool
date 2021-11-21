@@ -11,76 +11,69 @@ extern  "C" const char* __asan_default_options() {
     return "verbosity=1:disable_coredump=0:abort_on_error=1:unmap_shadow_on_exit=1:verify_asan_link_order=1";
 }
 
-struct A{
-    int a1 =1;
+int fact(int n){
 
-    A(int arg) : a1{arg}
-    {
-//        std::cerr<<"A constructor\n";
-    }
-    A(const A& a)
-    {
-//        std::cerr<<"A copy constructor\n";
-        a1 = a.a1;
-    }
-    ~A()
-    {
-//        std::cerr<<"A destructor\n";
-    }
+    return (n==0) || (n==1) ? 1 : n* fact(n-1);
+}
 
-
-};
 int main()
 {
-//    A a{1};
-
-//    std::vector<A> vec;
-//    for(int i = 0; i < 10; i++)
-//    {
-//        std::cerr<<vec.capacity()<<std::endl;
-//        vec.push_back(a);
-//    }
-    //    TArray<int, logging_allocator<int>> integers(2);
-//    TArray<int> integers(2);
-/*    TArray<A> integers(1);
-    std::fill(integers.begin(), integers.end(), 3);
-
-//    integers.push_back(a);
-
-    for(int i = 0; i < 10; i++)
+    //std::map std::allocator
     {
-        std::cerr<<"---"<<std::endl;
-        integers.push_back(a);
-    }*/
+        auto m = std::map<int, int>{};
 
-//    for (auto i : integers)
-//        std::cout << i.a1 << "\n";
-//////
-/*
-    auto v = std::vector<int, mempool_allocator<int>>{};
-    // v.reserve(5);
-    for (int i = 0; i < 6; ++i) {
-        std::cout << "vector size = " << v.size() << std::endl;
-        v.emplace_back(i);
-        std::cout << std::endl;
-    }*/
+        for (int i = 0; i < 10; ++i) {
+            m[i] = fact(i);
+        }
 
-//////
-
-    auto m = std::map<
-            int,
-            float,
-            std::less<int>,
-            mempool_adapter<
-                    std::pair<
-                            const int, float
-                    >
-            >
-    >{};
-
-//    m.emplace(1,2);
-    for (int i = 0; i < 20; ++i) {
-        m[i] = static_cast<float>(i);
+        for (const auto &it : m) {
+            std::cout << it.first << " " << it.second << std::endl;
+        }
     }
+
+    //std::map mempool_adapter
+    {
+        auto m = std::map<
+                int,
+                int,
+                std::less<>,
+                mempool_adapter<std::pair<int, int>, 10>
+        >{};
+
+        for (int i = 0; i < 10; ++i) {
+            m[i] = static_cast<float>(fact(i));
+        }
+
+        for (const auto &it : m) {
+            std::cout << it.first << " " << it.second << std::endl;
+        }
+    }
+
+    //TArray std::allocator
+    {
+        TArray<int> integers(10);
+
+        for (int i = 0; i < 10; ++i) {
+            integers.push_back(fact(i));
+        }
+
+        for (const auto &it : integers) {
+            std::cout << it << std::endl;
+        }
+    }
+
+    //TArray mempool_adapter
+    {
+        TArray<int, mempool_adapter<int, 10>> integers(10);
+
+        for (int i = 0; i < 10; ++i) {
+            integers.push_back(fact(i));
+        }
+
+        for (const auto &it : integers) {
+            std::cout << it << std::endl;
+        }
+    }
+
 
 }

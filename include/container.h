@@ -7,24 +7,6 @@ template<typename T, typename allocator = std::allocator<T>>
 class TArray
 {
 public:
-    TArray(std::size_t size) : m_size(size){
-        if(m_size)
-        {
-            m_data = m_allocator.allocate(m_size);
-            for(std::size_t i = 0; i < m_size; i++)
-            {
-//                std::cout<<std::hex<<"construct: "<<m_data + i<<std::endl;
-                m_allocator.construct(m_data + i, 1);
-            }
-        }
-    }
-
-    TArray() : TArray(200)
-    {}
-
-    ~TArray(){
-        clear();
-    }
 
     struct Iterator
     {
@@ -53,34 +35,62 @@ public:
         pointer m_ptr;
     };
 
-    Iterator begin() { return Iterator(&m_data[0]); }
-    Iterator end()   { return Iterator(&m_data[m_size]); }
-
-    void push_back(const T& value){
-
-        auto new_data = m_allocator.allocate(m_size + 1);
-        if(!new_data)
-            throw std::runtime_error{"Can not realloc memory"};
-        for(std::size_t i = 0; i < m_size; i++) {
-            m_allocator.construct(new_data + i, *reinterpret_cast<T *>(m_data + i));
-            m_allocator.destroy(reinterpret_cast<T *>(m_data + i));
+    TArray(std::size_t size) : m_reserve{size}, m_size{0}
+    {
+        if(m_reserve)
+        {
+            m_data = m_allocator.allocate(m_reserve);
         }
-        m_allocator.construct(new_data + m_size, value);
+    }
 
+    TArray() : TArray{200}
+    {}
+
+    ~TArray()
+    {
         clear();
-        m_data = new_data;
+    }
+
+    Iterator begin() { return Iterator(&m_data[0]); }
+    Iterator end()   { return Iterator(&m_data[m_reserve]); }
+
+    void push_back(const T& value)
+    {
+        if(m_size == m_reserve)
+        {
+            auto new_data = m_allocator.allocate(m_reserve + 1);
+            if(!new_data)
+                throw std::runtime_error{"Can not realloc memory"};
+
+            m_reserve++;
+
+            for(std::size_t i = 0; i < m_reserve; i++) {
+                m_allocator.construct(new_data + i, *reinterpret_cast<T *>(m_data + i));
+                m_allocator.destroy(reinterpret_cast<T *>(m_data + i));
+            }
+
+            m_allocator.deallocate(m_data, m_reserve);
+            m_data = new_data;
+        }
+        m_allocator.construct(m_data + m_size, value);
+
         m_size++;
 
     }
+
     void clear()
     {
-        if(m_size)
+        if(m_reserve)
         {
-            m_allocator.deallocate(m_data, m_size);
+            m_allocator.deallocate(m_data, m_reserve);
         }
+        m_reserve = 0;
+        m_size = 0;
     }
+
 private:
     T* m_data = nullptr;
+    std::size_t m_reserve;
     std::size_t m_size;
     allocator m_allocator;
 };

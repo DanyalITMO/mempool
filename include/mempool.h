@@ -6,14 +6,25 @@
 #include "ChooseBucketStrategy.h"
 #include "MinWasteStrategy.h"
 
-template <int BLOCK_COUNT = 500>
+template <int SIZE = 500>
 class mempool {
 private:
+    constexpr static std::size_t _buckets_count = 4;
+    std::array<bucket, _buckets_count> _buckets;
 
 public:
 
-    mempool()
+    mempool() : _buckets{{bucket{64, ((((SIZE % 128) % 64) == 0) ?((SIZE % 128) / 64): (((SIZE % 128) / 64) + 1))},
+                bucket{128, (SIZE % 256) / 128 },
+                bucket{256, (SIZE % 512) / 256},
+                bucket{512, SIZE / 512}}}
     {
+//        std::cerr<<"SIZE: " <<SIZE<<std::endl;
+//        std::cerr<<"BLOCK_COUNT 512: " <<SIZE / 512<<std::endl;
+//        std::cerr<<"BLOCK_COUNT 256: " <<(SIZE % 512) / 256 <<std::endl;
+//        std::cerr<<"BLOCK_COUNT 128: " <<(SIZE % 256) / 128 <<std::endl;
+//        std::cerr<<"BLOCK_COUNT 64: " <<((((SIZE % 128) % 64) == 0) ?((SIZE % 128) / 64): (((SIZE % 128) / 64) + 1)) <<std::endl;
+
         s = std::make_unique<MinWasteStrategy<_buckets_count>>();
     }
 
@@ -60,15 +71,7 @@ public:
 
 
 private:
-    constexpr static std::size_t _buckets_count = 4;
     std::unique_ptr<ChooseBucketStrategy<_buckets_count>> s;
-    std::array<bucket, _buckets_count> _buckets{bucket{64, BLOCK_COUNT},
-                                                bucket{128, BLOCK_COUNT},
-                                                bucket{256, BLOCK_COUNT},
-                                                bucket{512, BLOCK_COUNT}
-
-
-    };
 
 };
 

@@ -10,7 +10,9 @@ bucket::bucket(std::size_t block_size, std::size_t block_count)
         : BlockSize{block_size}
         , BlockCount{block_count}
 {
-    assert(block_count > 0);
+    if(block_count ==0)
+        return;
+//    assert(block_count > 0);
     assert(block_size > 0);
     const auto data_size = BlockSize * BlockCount;
     m_data = static_cast<std::byte*>(malloc(data_size));
@@ -33,6 +35,8 @@ bool bucket::belongs(void* ptr) const noexcept
 }
 
 void * bucket::allocate(std::size_t bytes) noexcept {
+    if(BlockCount == 0)
+        return nullptr;
     // Calculate the required number of blocks
     const auto n = 1 + ((bytes - 1) / BlockSize);
     const auto index = find_contiguous_blocks(n);
