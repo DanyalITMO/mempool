@@ -17,6 +17,8 @@ jobs:
       - run: cmake . -DPATCH_VERSION=${{ github.run_number }}
       - run: cmake --build .
       - run: cmake --build . --target package
+      - name: Run Test
+      - run: ./mempool_test
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
