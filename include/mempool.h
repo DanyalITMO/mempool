@@ -68,12 +68,8 @@ public:
         return false;
     }
 
-
-
 private:
     std::unique_ptr<ChooseBucketStrategy<_buckets_count>> s;
-
 };
-
 
 #endif //HW2_MEMPOOL_H

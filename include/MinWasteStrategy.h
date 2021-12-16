@@ -1,7 +1,3 @@
-//
-// Created by mugutdinov on 16.11.2021.
-//
-
 #ifndef HW2_MINWASTESTRATEGY_H
 #define HW2_MINWASTESTRATEGY_H
 

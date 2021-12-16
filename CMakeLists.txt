@@ -16,13 +16,9 @@ add_executable(hw2 main.cpp ${SOURCES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-
-target_compile_options(${PROJECT_NAME} PRIVATE -fno-omit-frame-pointer -fsanitize=address)
-target_link_options(${PROJECT_NAME} PRIVATE -fno-omit-frame-pointer -fsanitize=address)
-
 if(ASAN_BUILD)
-    target_compile_options(${PROJECT_NAME} PRIVATE -fno-omit-frame-pointer -fsanitize=address)
-    target_link_options(${PROJECT_NAME} PRIVATE -fno-omit-frame-pointer -fsanitize=address)
+    target_compile_options(${PROJECT_NAME} PRIVATE -fno-omit-frame-pointer -fsanitize=thread)
+    target_link_options(${PROJECT_NAME} PRIVATE -fno-omit-frame-pointer -fsanitize=thread)
     target_compile_definitions(${PROJECT_NAME} PRIVATE ENABLE_ASAN)
 endif ()
 

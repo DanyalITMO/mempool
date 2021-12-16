@@ -1,7 +1,3 @@
-//
-// Created by mugutdinov on 26.10.2021.
-//
-
 #ifndef HW2_BUCKET_H
 #define HW2_BUCKET_H
 

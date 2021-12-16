@@ -26,8 +26,6 @@ struct mempool_adapter {
     ~mempool_adapter() = default;
 
     T *allocate(std::size_t elements) {
-
-//        std::cout << "allocate: [n = " << elements << "]" << std::endl;
         void* ptr = nullptr;
         if(_mempool.allocate(ptr, elements * sizeof(T)))
             return reinterpret_cast<pointer>(ptr);
@@ -36,20 +34,17 @@ struct mempool_adapter {
     }
 
     void deallocate(pointer p, std::size_t n) {
-//        std::cout << "deallocate: [n  = " << n << "] " << std::endl;
         if(!_mempool.deallocate(p, n * sizeof(T)))
             throw std::logic_error{"free unknown memory region"};
     }
 
     template<typename U, typename ...Args>
     void construct(U *p, Args &&...args) {
-//        std::cout << "construct" << std::endl;
         new(p) U(std::forward<Args>(args)...);
     };
 
     template<typename U>
     void destroy(U *p) {
-//        std::cout << "destroy" << std::endl;
         p->~U();
     }
 
