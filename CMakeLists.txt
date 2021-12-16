@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.17)
-project(hw2)
+
+set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
+set(PROJECT_VERSION 0.0.${PATCH_VERSION})
+project(mempool VERSION ${PROJECT_VERSION})
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -12,7 +15,7 @@ endif()
 
 file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp)
 
-add_executable(hw2 main.cpp ${SOURCES})
+add_executable(${PROJECT_NAME} main.cpp ${SOURCES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -21,6 +24,11 @@ if(ASAN_BUILD)
     target_link_options(${PROJECT_NAME} PRIVATE -fno-omit-frame-pointer -fsanitize=thread)
     target_compile_definitions(${PROJECT_NAME} PRIVATE ENABLE_ASAN)
 endif ()
+
+set(CPACK_PACKAGE_CONTACT mugutdinov@yandex.ru)
+set(CPACK_GENERATOR DEB)
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
+include(CPack)
 
 if(TEST_BUILD)
     set(TEST_PROJECT_NAME ${PROJECT_NAME}_test)
